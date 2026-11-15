@@ -1,133 +1,167 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sélecteur HPO</title>
+<title>HPO Picker</title>
+<meta name="description" content="Browse and search the Human Phenotype Ontology, tick the terms that describe a patient, and export the list (English terms with their French equivalents).">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='9' fill='%230b8a99'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' stroke='white' stroke-width='2.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f3f4f2; --panel:#ffffff; --panel2:#f8f9f7; --ink:#1b1f1d; --muted:#66706b; --line:#dfe3df;
-  --green:#1d7a55; --green-soft:#e2f2ea; --teal:#0f8b8d; --teal-soft:#dff2f2; --orange:#d9731a; --orange-soft:#fcecdc;
-  --hover:#eef1ee; --shadow:0 1px 2px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --bg:#eef6f9; --bg2:#dceef4; --panel:#ffffff; --panel2:#f4f8fa; --ink:#0e2a33; --muted:#4c6e78; --faint:#7f9ca4;
+  --line:rgba(20,70,90,.13); --accent:#0b8a99; --accent-ink:#ffffff; --soft:#e6f3f6; --sel:#dff1f4;
+  --warn:#b26a00; --warn-soft:#fff4e0; --hover:#eef5f7;
+  --shadow:0 1px 1px rgba(10,50,70,.04),0 10px 28px -14px rgba(10,60,80,.25);
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#121514; --panel:#1a1e1c; --panel2:#202522; --ink:#e7ebe8; --muted:#97a19c; --line:#2d3430;
-    --green:#3fbf88; --green-soft:#1d3a2d; --teal:#3cc4c6; --teal-soft:#183637; --orange:#f0954a; --orange-soft:#3e2a18;
-    --hover:#242a27; --shadow:none;
+    --bg:#071a26; --bg2:#04101a; --panel:#0d2533; --panel2:#112d3d; --ink:#e4f5f8; --muted:#9cc0c8; --faint:#6a8e97;
+    --line:rgba(160,230,240,.12); --accent:#4fd8e0; --accent-ink:#04202a; --soft:#133847; --sel:#12404d;
+    --warn:#f2b45a; --warn-soft:#3a2a0f; --hover:#123141;
+    --shadow:0 1px 1px rgba(0,0,0,.2),0 14px 36px -16px rgba(0,0,0,.6);
+    color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#121514; --panel:#1a1e1c; --panel2:#202522; --ink:#e7ebe8; --muted:#97a19c; --line:#2d3430;
-  --green:#3fbf88; --green-soft:#1d3a2d; --teal:#3cc4c6; --teal-soft:#183637; --orange:#f0954a; --orange-soft:#3e2a18;
-  --hover:#242a27; --shadow:none;
+  --bg:#071a26; --bg2:#04101a; --panel:#0d2533; --panel2:#112d3d; --ink:#e4f5f8; --muted:#9cc0c8; --faint:#6a8e97;
+  --line:rgba(160,230,240,.12); --accent:#4fd8e0; --accent-ink:#04202a; --soft:#133847; --sel:#12404d;
+  --warn:#f2b45a; --warn-soft:#3a2a0f; --hover:#123141;
+  --shadow:0 1px 1px rgba(0,0,0,.2),0 14px 36px -16px rgba(0,0,0,.6);
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+body{background:linear-gradient(180deg,var(--bg),var(--bg2)) fixed;color:var(--ink);font:14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
-.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
 /* header */
-header{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap}
-.brand .logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--green),var(--teal));display:grid;place-items:center;color:#fff;font-size:12px;font-family:"IBM Plex Mono",monospace}
-.brand small{font-weight:400;color:var(--muted);font-size:12px}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px 0;flex-wrap:wrap}
+.back{color:var(--muted);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap}
+.back:hover{color:var(--accent)}
+.brand{font-weight:800;font-size:19px;letter-spacing:-.02em;white-space:nowrap;display:flex;align-items:baseline;gap:8px}
+.brand small{font-weight:500;color:var(--faint);font-size:12px;letter-spacing:0}
 .search{flex:1;min-width:220px;position:relative}
-.search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);outline:none}
-.search input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
-.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{border:0;background:transparent;padding:7px 10px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted)}
-.seg button.on{background:var(--green);color:#fff}
-.iconbtn{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:7px 10px;cursor:pointer;font-size:12px;font-weight:600}
-.iconbtn:hover{background:var(--hover)}
+.search input{width:100%;height:42px;padding:0 14px 0 40px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:var(--shadow);outline:none;font-size:14.5px}
+.search input:focus{border-color:var(--accent)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.iconbtn{border:1px solid var(--line);background:var(--panel);border-radius:12px;height:40px;min-width:40px;padding:0 10px;cursor:pointer;font-size:13px;font-weight:700;display:inline-grid;place-items:center;grid-auto-flow:column;gap:6px}
+.iconbtn:hover{border-color:var(--accent);color:var(--accent)}
+.iconbtn svg{width:18px;height:18px}
 #selToggle{display:none}
-#selToggle b{background:var(--orange);color:#fff;border-radius:10px;padding:0 7px;margin-left:4px}
+#selToggle b{background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:0 7px;font-size:12px}
 
 /* layout */
-.wrap{flex:1;display:grid;grid-template-columns:270px 1fr 370px;min-height:0}
-aside.systems{border-right:1px solid var(--line);overflow:auto;background:var(--panel);padding:8px}
-aside.systems h3,.sel h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:8px 8px 6px;font-weight:600}
-.sysbtn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:7px 8px;border-radius:7px;cursor:pointer;font-size:13px}
+.wrap{flex:1;display:grid;grid-template-columns:250px 1fr 360px;gap:12px;padding:12px 16px 16px;min-height:0}
+.wrap > *{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);min-height:0;min-width:0}
+aside.systems{overflow:auto;padding:8px}
+h3{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:8px 8px 6px;font-weight:700}
+.sysbtn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:7px 9px;border-radius:10px;cursor:pointer;font-size:13.5px}
 .sysbtn:hover{background:var(--hover)}
-.sysbtn.on{background:var(--green-soft);color:var(--green);font-weight:600}
+.sysbtn.on{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .sysbtn .nm{flex:1;min-width:0}
-.sysbtn .cnt{font-size:11px;font-weight:700;background:var(--orange);color:#fff;border-radius:9px;padding:0 6px;min-width:18px;text-align:center}
+.sysbtn .cnt{font-size:11px;font-weight:700;background:var(--soft);color:var(--accent);border-radius:999px;padding:0 7px;min-width:20px;text-align:center}
+.sysbtn.on .cnt{background:var(--accent-ink);color:var(--accent)}
 #sysSelect{display:none}
-main{overflow:auto;padding:14px 16px 40px}
-.crumb{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
-.crumb h2{margin:0;font-size:18px;letter-spacing:-.01em}
-.crumb .sub{color:var(--muted);font-size:12px}
+main{overflow:auto;padding:16px 16px 40px}
+.crumb{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.crumb h2{margin:0;font-size:20px;letter-spacing:-.015em}
+.crumb .sub{color:var(--faint);font-size:12.5px}
 .tools{margin-left:auto;display:flex;gap:6px}
-.link{border:0;background:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;padding:2px 4px}
+.link{border:0;background:none;color:var(--accent);cursor:pointer;font-size:12.5px;font-weight:600;padding:2px 4px;border-radius:6px}
+.link:hover{text-decoration:underline}
 
 /* tree */
 ul.tree{list-style:none;margin:0;padding:0}
-ul.tree ul{list-style:none;margin:0;padding-left:20px;border-left:1px dashed var(--line);margin-left:11px}
-.row{display:flex;align-items:flex-start;gap:6px;padding:3px 6px;border-radius:6px}
+ul.tree ul{list-style:none;margin:0 0 0 12px;padding-left:16px;border-left:1px solid var(--line)}
+.row{display:flex;align-items:flex-start;gap:6px;padding:5px 8px;border-radius:10px}
 .row:hover{background:var(--hover)}
-.row.checked{background:var(--green-soft)}
-.tg{width:18px;height:18px;flex:none;border:0;background:none;cursor:pointer;color:var(--muted);padding:0;margin-top:2px;font-size:10px;line-height:18px}
+.row.checked{background:var(--sel)}
+.tg{width:20px;height:20px;flex:none;border:0;background:none;cursor:pointer;color:var(--muted);padding:0;margin-top:1px;font-size:10px;line-height:20px;border-radius:6px}
+.tg:hover{background:var(--soft);color:var(--accent)}
 .tg.leaf{visibility:hidden}
-.row input[type=checkbox]{margin:3px 2px 0;accent-color:var(--green);width:15px;height:15px;flex:none;cursor:pointer}
+.row input[type=checkbox]{margin:3px 2px 0;accent-color:var(--accent);width:16px;height:16px;flex:none;cursor:pointer}
 .lbl{flex:1;min-width:0;cursor:pointer}
-.lbl .p{font-weight:500}
-.lbl .s{color:var(--muted);font-size:12px}
-.lbl .p .en-only{font-style:italic}
-.tag{font-size:10px;border-radius:4px;padding:0 4px;margin-left:4px;vertical-align:1px;font-weight:600}
-.tag.en{background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
-.tag.d{background:var(--orange-soft);color:var(--orange)}
-.tag.st{background:transparent;border:1px dashed var(--orange);color:var(--orange);cursor:help}
-.hid{font-size:11px;color:var(--muted);flex:none;margin-top:2px}
-.def{margin:2px 0 6px 50px;padding:8px 10px;border-left:3px solid var(--teal);background:var(--teal-soft);border-radius:0 6px 6px 0;font-size:12.5px}
+.lbl .p{font-weight:600}
+.lbl .s{color:var(--muted);font-size:12.5px}
+.tag{font-size:10.5px;border-radius:999px;padding:0 6px;margin-left:6px;vertical-align:1px;font-weight:700;white-space:nowrap}
+.tag.d{background:var(--accent);color:var(--accent-ink)}
+.tag.st{border:1px dashed var(--warn);color:var(--warn);cursor:help}
+.hid{font-size:11px;color:var(--faint);flex:none;margin-top:3px}
+.def{margin:2px 0 8px 52px;padding:9px 12px;border-left:3px solid var(--accent);background:var(--soft);border-radius:0 10px 10px 0;font-size:13px}
 .def .syn{color:var(--muted);margin-top:4px}
-.res .path{color:var(--muted);font-size:11.5px}
+.def .syn.w{color:var(--warn)}
+.res .path{font-size:11.5px;margin-left:-4px}
 .hint{color:var(--muted);padding:20px 4px}
-mark{background:var(--orange-soft);color:inherit;border-radius:2px}
+mark{background:var(--warn-soft);color:inherit;border-radius:3px}
 
 /* selection */
-aside.sel{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0}
-.selbody{overflow:auto;flex:1;padding:8px 12px}
-.pf{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
-.pf label{min-width:0;display:flex;flex-direction:column;font-size:11px;color:var(--muted);gap:2px}
+aside.sel{display:flex;flex-direction:column}
+.selhead{display:flex;align-items:center;padding:8px 8px 0}
+.selhead h3{flex:1}
+.pill{background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:0 7px;margin-left:4px;letter-spacing:0}
+.pill:empty{display:none}
+.selbody{overflow:auto;flex:1;padding:4px 12px 8px}
+details.pt{border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin-bottom:10px}
+details.pt summary{cursor:pointer;padding:9px 12px;font-weight:700;font-size:13px;display:flex;gap:8px;align-items:baseline;list-style:none}
+details.pt summary::-webkit-details-marker{display:none}
+details.pt summary::before{content:"+";color:var(--accent);font-weight:800;width:10px;flex:none}
+details.pt[open] summary::before{content:"–"}
+.ptsum{font-weight:500;color:var(--muted);font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 12px}
+.pf label{min-width:0;display:flex;flex-direction:column;font-size:11.5px;color:var(--muted);gap:3px;font-weight:600}
 .pf label.full{grid-column:1/-1}
-.pf input,.pf textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:6px;background:var(--panel2);padding:6px 8px;font-size:13px;color:var(--ink);resize:vertical}
-.grp{margin:10px 0 4px;font-size:11.5px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.05em}
-.si{display:flex;gap:6px;align-items:flex-start;padding:5px 6px;border-radius:6px;border:1px solid var(--line);margin-bottom:4px;background:var(--panel2)}
-.si .t{flex:1;min-width:0;font-size:13px}
-.si .t .s{color:var(--muted);font-size:11.5px}
-.si .x{border:0;background:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:0 2px}
-.si .x:hover{color:var(--orange)}
-.si.red{border-color:var(--orange)}
-.warn{font-size:11px;color:var(--orange);margin-top:2px}
-.selfoot{border-top:1px solid var(--line);padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.btn{border:1px solid var(--line);background:var(--panel2);border-radius:7px;padding:8px;cursor:pointer;font-size:12.5px;font-weight:600}
-.btn:hover{background:var(--hover)}
-.btn.pri{background:var(--green);color:#fff;border-color:var(--green);grid-column:1/-1}
-.btn.pri:hover{filter:brightness(1.07)}
-.btn.danger{color:var(--orange)}
-.empty{color:var(--muted);font-size:13px;padding:12px 2px}
-.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
+.pf input,.pf textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;background:var(--panel);padding:7px 9px;font-size:13px;color:var(--ink);resize:vertical;font-weight:400}
+.grp{margin:12px 0 5px;font-size:11.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+.si{display:flex;gap:6px;align-items:flex-start;padding:7px 9px;border-radius:10px;border:1px solid var(--line);margin-bottom:5px;background:var(--panel2)}
+.si .t{flex:1;min-width:0;font-size:13px;font-weight:600}
+.si .t .s{color:var(--muted);font-size:12px;font-weight:400}
+.si .t .id{font-size:11px;color:var(--faint);font-weight:400}
+.si .x{border:0;background:none;cursor:pointer;color:var(--faint);font-size:17px;line-height:1;padding:0 2px;border-radius:6px}
+.si .x:hover{color:var(--warn)}
+.si.red{border-color:var(--warn)}
+.warn{font-size:11.5px;color:var(--warn);margin-top:2px;font-weight:500}
+.selfoot{border-top:1px solid var(--line);padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative}
+.btn{border:1px solid var(--line);background:transparent;border-radius:12px;height:38px;padding:0 10px;cursor:pointer;font-size:13px;font-weight:700}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent;grid-column:1/-1;height:42px;font-size:14px}
+.btn.pri:hover{filter:brightness(1.07);color:var(--accent-ink)}
+.menu-pop{position:absolute;right:12px;bottom:58px;width:230px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow),0 8px 30px rgba(0,0,0,.15);padding:6px;z-index:10;display:grid}
+.menu-pop[hidden]{display:none}
+.menu-pop button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600}
+.menu-pop button:hover{background:var(--hover)}
+.menu-pop button small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.menu-pop hr{border:0;border-top:1px solid var(--line);margin:4px 6px}
+.menu-pop .danger{color:var(--warn)}
+.empty{color:var(--muted);font-size:13px;padding:14px 4px;text-align:center}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
 .toast.on{opacity:1}
 #printArea{display:none}
+#selClose{display:none}
 
 @media (max-width:1100px){
-  .wrap{grid-template-columns:250px 1fr}
-  aside.sel{position:fixed;right:0;top:0;bottom:0;width:min(400px,100%);z-index:30;box-shadow:-8px 0 30px rgba(0,0,0,.18);transform:translateX(105%);transition:transform .2s}
+  .wrap{grid-template-columns:240px 1fr}
+  aside.sel{position:fixed;right:0;top:0;bottom:0;width:min(400px,100%);z-index:30;border-radius:18px 0 0 18px;box-shadow:-8px 0 30px rgba(0,0,0,.18);transform:translateX(105%);transition:transform .2s}
   aside.sel.open{transform:none}
-  #selToggle{display:inline-block}
-  #selClose{display:inline-block!important}
+  #selToggle,#selClose{display:inline-grid}
 }
 @media (max-width:760px){
-  .wrap{grid-template-columns:1fr}
+  .wrap{grid-template-columns:1fr;padding:10px}
+  header{padding:10px 10px 0}
+  .brand small{display:none}
+  .search{order:5;flex-basis:100%}
   aside.systems{display:none}
-  #sysSelect{display:block;width:100%;margin-bottom:10px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+  #sysSelect{display:block;width:100%;margin-bottom:12px;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+  main{padding:12px 10px 40px}
   .def{margin-left:20px}
   .hid{display:none}
 }
+@media (prefers-reduced-motion:reduce){aside.sel,.toast{transition:none}}
 
 /* print */
 @media print{
@@ -136,69 +170,74 @@ aside.sel{border-left:1px solid var(--line);background:var(--panel);display:flex
   header,.wrap,.toast{display:none!important}
   #printArea{display:block}
 }
-.rep{font:11pt/1.35 "IBM Plex Sans",Arial,sans-serif;color:#000}
+.rep{font:11pt/1.35 "Plus Jakarta Sans",Arial,sans-serif;color:#000}
 .rep h1{font-size:16pt;margin:0 0 2px}
 .rep .meta{display:grid;grid-template-columns:1fr 1fr;gap:2px 20px;margin:8px 0 10px;padding:8px 10px;border:1px solid #999;border-radius:4px}
 .rep .meta div b{display:inline-block;min-width:105px}
-.rep h2{font-size:11pt;margin:12px 0 4px;padding-bottom:2px;border-bottom:1.5px solid #1d7a55;color:#1d7a55;page-break-after:avoid}
+.rep h2{font-size:11pt;margin:12px 0 4px;padding-bottom:2px;border-bottom:1.5px solid #0b8a99;color:#0b6f7b;page-break-after:avoid}
 .rep table{width:100%;border-collapse:collapse;font-size:10pt}
 .rep td{padding:3px 4px;border-bottom:1px solid #ddd;vertical-align:top}
-.rep td.id{font-family:"IBM Plex Mono",monospace;white-space:nowrap;width:92px}
-.rep td.en{color:#444}
+.rep td.id{font-family:"JetBrains Mono",monospace;white-space:nowrap;width:92px}
+.rep td.fr{color:#444}
 .rep tr{page-break-inside:avoid}
-.rep .ids{margin-top:14px;font-family:"IBM Plex Mono",monospace;font-size:9pt;word-break:break-all;padding:6px;border:1px dashed #999}
+.rep .ids{margin-top:14px;font-family:"JetBrains Mono",monospace;font-size:9pt;word-break:break-all;padding:6px;border:1px dashed #999}
 .rep .foot{margin-top:10px;font-size:8.5pt;color:#555}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">HP</div><div>Sélecteur HPO<br><small id="ver"></small></div></div>
+  <a class="back" href="https://clairevaltin.github.io/Tools/">← Tools</a>
+  <div class="brand">HPO Picker <small id="ver"></small></div>
   <div class="search">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input id="q" type="search" placeholder="Rechercher (FR / EN / synonyme / HP:…)" autocomplete="off">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Search a term in English or French, a synonym, or an HP ID" autocomplete="off" aria-label="Search HPO terms">
   </div>
-  <div class="seg" id="langSeg" title="Langue d'affichage">
-    <button data-l="fr">FR</button><button data-l="both">FR+EN</button><button data-l="en">EN</button>
-  </div>
-  <button class="iconbtn" id="themeBtn" title="Thème clair / sombre" aria-label="Thème"><svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align:-2px"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
-  <button class="iconbtn" id="selToggle">Sélection <b id="selCount">0</b></button>
+  <button class="iconbtn" id="themeBtn" type="button" title="Light / dark theme" aria-label="Toggle light / dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg></button>
+  <button class="iconbtn" id="selToggle" type="button">Selection <b id="selCount">0</b></button>
 </header>
 <div class="wrap">
   <aside class="systems">
-    <h3>Organes / systèmes</h3>
+    <h3>Organ systems</h3>
     <div id="sysList"></div>
   </aside>
   <main id="main">
-    <select id="sysSelect"></select>
+    <select id="sysSelect" aria-label="Organ system"></select>
     <div class="crumb">
       <h2 id="title"></h2><span class="sub" id="subtitle"></span>
-      <div class="tools" id="treeTools"><button class="link" id="collapseAll">Tout replier</button></div>
+      <div class="tools" id="treeTools"><button class="link" id="collapseAll" type="button">Collapse all</button></div>
     </div>
     <div id="view"></div>
   </main>
   <aside class="sel" id="selPanel">
+    <div class="selhead"><h3>Selected terms <span class="pill" id="selN"></span></h3><button class="iconbtn" id="selClose" type="button" aria-label="Close">✕</button></div>
     <div class="selbody">
-      <div style="display:flex;align-items:center"><h3 style="flex:1">Patient</h3><button class="iconbtn" id="selClose" style="display:none">✕</button></div>
-      <div class="pf">
-        <label class="full">Nom / Prénom<input id="pName"></label>
-        <label>N° dossier / IPP<input id="pId"></label>
-        <label>Date de consultation<input id="pDate" type="date"></label>
-        <label>Date de naissance<input id="pDob" type="date"></label>
-        <label>Médecin<input id="pDoc"></label>
-        <label class="full">Indication / notes<textarea id="pNotes" rows="2"></textarea></label>
-      </div>
-      <h3>Termes cochés <span id="selN"></span></h3>
+      <details class="pt" id="ptBox">
+        <summary><span>Patient details</span><span class="ptsum" id="ptSum"></span></summary>
+        <div class="pf">
+          <label class="full">Name<input id="pName"></label>
+          <label>Record no.<input id="pId"></label>
+          <label>Consultation date<input id="pDate" type="date"></label>
+          <label>Date of birth<input id="pDob" type="date"></label>
+          <label>Physician<input id="pDoc"></label>
+          <label class="full">Indication / notes<textarea id="pNotes" rows="2"></textarea></label>
+        </div>
+      </details>
       <div id="selList"></div>
     </div>
     <div class="selfoot">
-      <button class="btn pri" id="printBtn">Imprimer / PDF</button>
-      <button class="btn" id="dlHtml">Fiche (.html)</button>
-      <button class="btn" id="copyIds">Copier les HP IDs</button>
-      <button class="btn" id="dlTxt">IDs (.txt)</button>
-      <button class="btn" id="dlTsv">Tableau (.tsv)</button>
-      <button class="btn" id="dlJson">Sauver (.json)</button>
-      <button class="btn" id="ldJson">Ouvrir (.json)</button>
-      <button class="btn danger" id="clearBtn" style="grid-column:1/-1">Nouvelle consultation (tout effacer)</button>
+      <button class="btn pri" id="printBtn" type="button">Print / PDF</button>
+      <button class="btn" id="copyIds" type="button">Copy HP IDs</button>
+      <button class="btn" id="moreBtn" type="button" aria-haspopup="true" aria-expanded="false">More ▾</button>
+      <div class="menu-pop" id="morePop" hidden>
+        <button id="dlHtml" type="button">Report (.html)<small>Same sheet as Print, as a file</small></button>
+        <button id="dlTsv" type="button">Table (.tsv)<small>ID, English, French, system</small></button>
+        <button id="dlTxt" type="button">ID list (.txt)</button>
+        <hr>
+        <button id="dlJson" type="button">Save session (.json)</button>
+        <button id="ldJson" type="button">Open session (.json)</button>
+        <hr>
+        <button id="clearBtn" class="danger" type="button">New consultation<small>Clears patient and terms</small></button>
+      </div>
       <input type="file" id="fileIn" accept=".json,application/json" hidden>
     </div>
   </aside>
@@ -225,7 +264,6 @@ const LS = {
   set(k, v){ try { localStorage.setItem('hpoPicker.' + k, JSON.stringify(v)); } catch(e){} }
 };
 
-let lang = LS.get('lang') || 'fr';
 let currentSys = LS.get('sys');
 if (!SYSSET.has(currentSys)) currentSys = BYID0('HP:0000707');
 let sel = [];               // ordered term indices
@@ -237,8 +275,8 @@ const PF = ['pName','pId','pDate','pDob','pDoc','pNotes'];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const en = i => T[i][1], fr = i => T[i][2];
-const primary = i => (lang === 'en' ? en(i) : (fr(i) || en(i)));
-const secondary = i => (lang === 'both' && fr(i) ? en(i) : '');
+const primary = i => en(i);
+const secondary = i => fr(i);
 const sortKey = i => norm(primary(i));
 
 /* ancestors (memoised) */
@@ -262,15 +300,15 @@ function recount(){
 /* ---------- labels ---------- */
 function labelHTML(i, q){
   const hl = s => q ? highlight(s, q) : esc(s);
-  const p = primary(i), s2 = secondary(i);
-  const enOnly = lang !== 'en' && !fr(i);
-  let h = '<div class="p' + '">' + (enOnly ? '<span class="en-only">' + hl(p) + '</span><span class="tag en" title="Pas de traduction française officielle">EN</span>' : hl(p));
+  let h = '<div class="p">' + hl(en(i));
   const c = descCount.get(i);
-  if (lang !== 'en' && T[i][6]) h += '<span class="tag st" title="Traduction faite sur un ancien libellé anglais : « ' + esc(T[i][6]) + ' ». À vérifier.">≈</span>';
-  if (c) h += '<span class="tag d" title="Termes cochés plus bas dans cette branche">' + c + ' ✓</span>';
+  if (c) h += '<span class="tag d" title="Ticked terms further down this branch">' + c + ' ✓</span>';
   h += '</div>';
-  if (s2) h += '<div class="s">' + hl(s2) + '</div>';
+  if (fr(i)) h += '<div class="s" lang="fr">' + hl(fr(i)) + staleTag(i) + '</div>';
   return h;
+}
+function staleTag(i){
+  return T[i][6] ? '<span class="tag st" title="French translation was made from an older English label: “' + esc(T[i][6]) + '”. Check it still fits.">≈</span>' : '';
 }
 function highlight(s, q){
   const ns = norm(s); let out = '', pos = 0;
@@ -283,17 +321,16 @@ function highlight(s, q){
 }
 function defHTML(i){
   const d = T[i][5], syn = T[i][4];
-  let h = '<div class="def">' + (d ? esc(d) : '<i>Pas de définition.</i>');
-  if (syn.length) h += '<div class="syn">Synonymes : ' + syn.map(esc).join(' · ') + '</div>';
-  if (lang === 'fr' && fr(i)) h += '<div class="syn">EN : ' + esc(en(i)) + '</div>';
-  if (T[i][6]) h += '<div class="syn" style="color:var(--orange)">La traduction FR a été faite sur l\'ancien libellé « ' + esc(T[i][6]) + ' » — vérifier qu\'elle correspond au libellé actuel.</div>';
+  let h = '<div class="def">' + (d ? esc(d) : '<i>No definition.</i>');
+  if (syn.length) h += '<div class="syn">Synonyms: ' + syn.map(esc).join(' · ') + '</div>';
+  if (T[i][6]) h += '<div class="syn w">The French translation was made from the older label “' + esc(T[i][6]) + '”. Check that it matches the current one.</div>';
   return h + '</div>';
 }
 function rowHTML(i, opts){
   opts = opts || {};
   const k = KIDS[i].length, isOpen = expanded.has(i);
   let h = '<div class="row' + (selSet.has(i) ? ' checked' : '') + '" data-i="' + i + '">';
-  if (!opts.flat) h += '<button class="tg' + (k ? '' : ' leaf') + '" data-act="tg" aria-label="déplier">' + (isOpen ? '▼' : '▶') + '</button>';
+  if (!opts.flat) h += '<button class="tg' + (k ? '' : ' leaf') + '" data-act="tg" aria-label="Expand">' + (isOpen ? '▼' : '▶') + '</button>';
   h += '<input type="checkbox" data-act="ck"' + (selSet.has(i) ? ' checked' : '') + '>';
   h += '<div class="lbl"><div data-act="def">' + labelHTML(i, opts.q) + '</div>';
   if (opts.path) h += '<div class="path">' + opts.path + '</div>';
@@ -312,7 +349,7 @@ function kidsSorted(i){ return KIDS[i].slice().sort((a,b) => sortKey(a) < sortKe
 
 function renderTree(){
   document.getElementById('title').textContent = primary(currentSys);
-  document.getElementById('subtitle').innerHTML = '<span class="mono">' + hid(currentSys) + '</span> · ' + countDesc(currentSys) + ' termes';
+  document.getElementById('subtitle').innerHTML = '<span class="mono">' + hid(currentSys) + '</span> · ' + countDesc(currentSys).toLocaleString('en-GB') + ' terms';
   document.getElementById('treeTools').style.display = '';
   expanded.add(currentSys);
   document.getElementById('view').innerHTML = '<ul class="tree">' + liHTML(currentSys) + '</ul>';
@@ -341,7 +378,7 @@ function renderSearch(){
     const s = IDX[i]; let ok = true;
     for (const w of words) if (s.indexOf(w) < 0){ ok = false; break; }
     if (!ok) continue;
-    const lab = norm(primary(i)), lab2 = norm(en(i));
+    const lab = norm(en(i)), lab2 = norm(fr(i) || en(i));
     let score = 3;
     if (lab === q || lab2 === q || hid(i).toLowerCase() === q) score = 0;
     else if (lab.startsWith(q) || lab2.startsWith(q)) score = 1;
@@ -350,14 +387,14 @@ function renderSearch(){
   }
   res.sort((a,b) => a[0]-b[0] || a[1]-b[1]);
   const MAX = 250;
-  document.getElementById('title').textContent = 'Recherche';
-  document.getElementById('subtitle').textContent = res.length + ' résultat' + (res.length > 1 ? 's' : '') + (res.length > MAX ? ' (' + MAX + ' premiers affichés)' : '');
+  document.getElementById('title').textContent = 'Search';
+  document.getElementById('subtitle').textContent = res.length + ' result' + (res.length === 1 ? '' : 's') + (res.length > MAX ? ' (first ' + MAX + ' shown)' : '');
   document.getElementById('treeTools').style.display = 'none';
   const v = document.getElementById('view');
-  if (!res.length){ v.innerHTML = '<div class="hint">Aucun terme. Essayez un synonyme, l\'anglais, ou un identifiant HP.</div>'; return; }
+  if (!res.length){ v.innerHTML = '<div class="hint">No term found. Try a synonym, the French or English name, or an HP ID.</div>'; return; }
   v.innerHTML = '<div class="res">' + res.slice(0, MAX).map(r => {
     const i = r[2];
-    const path = systemsOf(i).map(s => '<button class="link" data-act="goto" data-s="' + s + '" data-t="' + i + '">' + esc(primary(s)) + '</button>').join(' ');
+    const path = systemsOf(i).map(s => '<button type="button" title="Show in tree" class="link" data-act="goto" data-s="' + s + '" data-t="' + i + '">' + esc(short(s)) + '</button>').join(' ');
     return rowHTML(i, {flat:true, q:q, path:path});
   }).join('') + '</div>';
 }
@@ -381,14 +418,14 @@ function reveal(s, t){
 }
 
 /* ---------- systems ---------- */
+const short = s => en(s).replace(/^Abnormality of (the )?/i, '').replace(/^./, c => c.toUpperCase());
 function renderSystems(){
-  const short = s => primary(s).replace(/^(Anomalie (de l'|de la |des |du |de )|Abnormality of (the )?)/i, '').replace(/^./, c => c.toUpperCase());
   const sorted = SYS.slice().sort((a,b) => norm(short(a)) < norm(short(b)) ? -1 : 1);
   document.getElementById('sysList').innerHTML = sorted.map(s => {
     const c = (descCount.get(s) || 0) + (selSet.has(s) ? 1 : 0);
     return '<button class="sysbtn' + (s === currentSys && !searchQ.trim() ? ' on' : '') + '" data-s="' + s + '"><span class="nm">' + esc(short(s)) + '</span>' + (c ? '<span class="cnt">' + c + '</span>' : '') + '</button>';
   }).join('');
-  document.getElementById('sysSelect').innerHTML = sorted.map(s => '<option value="' + s + '"' + (s === currentSys ? ' selected' : '') + '>' + esc(primary(s)) + ((descCount.get(s) || 0) ? ' (' + descCount.get(s) + ')' : '') + '</option>').join('');
+  document.getElementById('sysSelect').innerHTML = sorted.map(s => '<option value="' + s + '"' + (s === currentSys ? ' selected' : '') + '>' + esc(short(s)) + ((descCount.get(s) || 0) ? ' (' + descCount.get(s) + ')' : '') + '</option>').join('');
 }
 
 /* ---------- selection ---------- */
@@ -409,15 +446,21 @@ function groupSel(){
 }
 function renderSel(){
   document.getElementById('selCount').textContent = sel.length;
-  document.getElementById('selN').textContent = sel.length ? '(' + sel.length + ')' : '';
+  document.getElementById('selN').textContent = sel.length || '';
   const box = document.getElementById('selList');
-  if (!sel.length){ box.innerHTML = '<div class="empty">Cochez des termes dans l\'arbre ou via la recherche.</div>'; return; }
-  box.innerHTML = groupSel().map(([s, items]) => '<div class="grp">' + esc(primary(s)) + '</div>' + items.map(i => {
+  if (!sel.length){ box.innerHTML = '<div class="empty">Tick terms in the tree or in the search results.<br>They will be listed here.</div>'; return; }
+  box.innerHTML = groupSel().map(([s, items]) => '<div class="grp">' + esc(short(s)) + '</div>' + items.map(i => {
     const red = redundantWith(i);
-    return '<div class="si' + (red.length ? ' red' : '') + '" data-i="' + i + '"><div class="t"><span class="mono" style="font-size:11px;color:var(--muted)">' + hid(i) + '</span> ' + esc(fr(i) || en(i)) + (fr(i) ? '' : ' <span class="tag en">EN</span>') + (T[i][6] ? ' <span class="tag st" title="Traduction faite sur l\'ancien libellé : « ' + esc(T[i][6]) + ' »">≈</span>' : '') + (fr(i) ? '<div class="s">' + esc(en(i)) + '</div>' : '') +
-      (red.length ? '<div class="warn">Redondant : terme parent de ' + red.map(r => esc(primary(r))).join(', ') + '</div>' : '') +
-      '</div><button class="x" data-act="rm" title="Retirer">×</button></div>';
+    return '<div class="si' + (red.length ? ' red' : '') + '" data-i="' + i + '"><div class="t">' + esc(en(i)) +
+      (fr(i) ? '<div class="s" lang="fr">' + esc(fr(i)) + staleTag(i) + '</div>' : '') +
+      '<div class="id mono">' + hid(i) + '</div>' +
+      (red.length ? '<div class="warn">Redundant: parent of ' + red.map(r => esc(en(r))).join(', ') + '</div>' : '') +
+      '</div><button class="x" type="button" data-act="rm" title="Remove" aria-label="Remove">×</button></div>';
   }).join('')).join('');
+}
+function renderPt(){
+  const p = patient();
+  document.getElementById('ptSum').textContent = [p.pName, p.pId].filter(Boolean).join(' · ') || 'optional';
 }
 function toggle(i, on){
   if (on && !selSet.has(i)){ sel.push(i); selSet.add(i); }
@@ -427,6 +470,7 @@ function toggle(i, on){
 function save(){
   LS.set('sel', sel.map(hid));
   const p = {}; PF.forEach(k => p[k] = document.getElementById(k).value); LS.set('patient', p);
+  renderPt();
 }
 
 /* ---------- report / exports ---------- */
@@ -434,19 +478,19 @@ function patient(){ const p = {}; PF.forEach(k => p[k] = document.getElementById
 const fmtDate = d => d ? d.split('-').reverse().join('/') : '';
 function reportHTML(){
   const p = patient();
-  let h = '<div class="rep"><h1>Phénotype HPO — fiche de consultation</h1>';
-  h += '<div class="meta"><div><b>Patient :</b> ' + esc(p.pName) + '</div><div><b>N° dossier :</b> ' + esc(p.pId) + '</div>' +
-       '<div><b>Date consult. :</b> ' + fmtDate(p.pDate) + '</div><div><b>Date naiss. :</b> ' + fmtDate(p.pDob) + '</div>' +
-       '<div><b>Médecin :</b> ' + esc(p.pDoc) + '</div><div><b>Termes :</b> ' + sel.length + '</div>' +
-       (p.pNotes ? '<div style="grid-column:1/-1"><b>Indication :</b> ' + esc(p.pNotes).replace(/\n/g,'<br>') + '</div>' : '') + '</div>';
+  let h = '<div class="rep"><h1>HPO phenotype: consultation sheet</h1>';
+  h += '<div class="meta"><div><b>Patient:</b> ' + esc(p.pName) + '</div><div><b>Record no.:</b> ' + esc(p.pId) + '</div>' +
+       '<div><b>Consultation:</b> ' + fmtDate(p.pDate) + '</div><div><b>Date of birth:</b> ' + fmtDate(p.pDob) + '</div>' +
+       '<div><b>Physician:</b> ' + esc(p.pDoc) + '</div><div><b>Terms:</b> ' + sel.length + '</div>' +
+       (p.pNotes ? '<div style="grid-column:1/-1"><b>Indication:</b> ' + esc(p.pNotes).replace(/\n/g,'<br>') + '</div>' : '') + '</div>';
   for (const [s, items] of groupSel()){
-    h += '<h2>' + esc(fr(s) || en(s)) + (fr(s) ? ' <span style="font-weight:400;color:#555">/ ' + esc(en(s)) + '</span>' : '') + '</h2><table>';
-    for (const i of items) h += '<tr><td class="id">' + hid(i) + '</td><td>' + esc(fr(i) || '—') + (T[i][6] ? ' ≈' : '') + '</td><td class="en">' + esc(en(i)) + '</td></tr>';
+    h += '<h2>' + esc(en(s)) + (fr(s) ? ' <span style="font-weight:400;color:#555">/ ' + esc(fr(s)) + '</span>' : '') + '</h2><table>';
+    for (const i of items) h += '<tr><td class="id">' + hid(i) + '</td><td>' + esc(en(i)) + '</td><td class="fr">' + esc(fr(i) || '—') + (T[i][6] ? ' ≈' : '') + '</td></tr>';
     h += '</table>';
   }
-  if (!sel.length) h += '<p><i>Aucun terme sélectionné.</i></p>';
+  if (!sel.length) h += '<p><i>No term selected.</i></p>';
   h += '<div class="ids">' + sel.map(hid).join(', ') + '</div>';
-  h += '<div class="foot">Human Phenotype Ontology, version ' + esc(D.v) + ' (hpo.jax.org). Traductions françaises : HPO translations (officielles) ; « — » = pas de traduction officielle ; « ≈ » = traduction faite sur un ancien libellé anglais (le libellé anglais fait foi). Généré le ' + new Date().toLocaleDateString('fr-FR') + '.</div></div>';
+  h += '<div class="foot">Human Phenotype Ontology, release ' + esc(D.v) + ' (hpo.jax.org). French labels: official HPO translations; “—” = no official translation; “≈” = translated from an older English label (the English label prevails). Generated on ' + new Date().toLocaleDateString('en-GB') + '.</div></div>';
   return h;
 }
 function fileBase(){ const p = patient(); return ('HPO_' + (p.pId || p.pName || 'patient') + '_' + (p.pDate || new Date().toISOString().slice(0,10))).replace(/[^\w\-.]+/g, '_'); }
@@ -457,25 +501,25 @@ function download(name, content, type){
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 function toast(m){ const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 1800); }
-function needSel(){ if (!sel.length){ toast('Aucun terme coché'); return false; } return true; }
+function needSel(){ if (!sel.length){ toast('No term ticked yet'); return false; } return true; }
 
 document.getElementById('printBtn').onclick = () => { document.getElementById('printArea').innerHTML = reportHTML(); window.print(); };
 document.getElementById('dlHtml').onclick = () => {
   if (!needSel()) return;
   const css = [...document.querySelectorAll('style')][0].textContent.match(/\.rep[\s\S]*$/)[0];
-  download(fileBase() + '.html', '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>' + esc(fileBase()) + '</title><style>body{max-width:190mm;margin:12mm auto;padding:0 12px}@page{size:A4;margin:14mm 12mm}@media print{body{margin:0}}' + css + '</style></head><body>' + reportHTML() + '</body></html>', 'text/html');
+  download(fileBase() + '.html', '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + esc(fileBase()) + '</title><style>body{max-width:190mm;margin:12mm auto;padding:0 12px}@page{size:A4;margin:14mm 12mm}@media print{body{margin:0}}' + css + '</style></head><body>' + reportHTML() + '</body></html>', 'text/html');
 };
 document.getElementById('copyIds').onclick = async () => {
   if (!needSel()) return;
   const txt = sel.map(hid).join('\n');
-  try { await navigator.clipboard.writeText(txt); toast(sel.length + ' IDs copiés'); }
-  catch(e){ const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(sel.length + ' IDs copiés'); }
+  try { await navigator.clipboard.writeText(txt); toast(sel.length + ' ID' + (sel.length === 1 ? '' : 's') + ' copied'); }
+  catch(e){ const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(sel.length + ' ID' + (sel.length === 1 ? '' : 's') + ' copied'); }
 };
 document.getElementById('dlTxt').onclick = () => { if (needSel()) download(fileBase() + '_ids.txt', sel.map(hid).join('\n') + '\n', 'text/plain'); };
 document.getElementById('dlTsv').onclick = () => {
   if (!needSel()) return;
-  const rows = [['hpo_id','label_fr','label_en','systeme']];
-  for (const [s, items] of groupSel()) for (const i of items) rows.push([hid(i), fr(i), en(i), en(s)]);
+  const rows = [['hpo_id','label_en','label_fr','system']];
+  for (const [s, items] of groupSel()) for (const i of items) rows.push([hid(i), en(i), fr(i), en(s)]);
   download(fileBase() + '.tsv', '﻿' + rows.map(r => r.map(x => String(x).replace(/[\t\n]/g,' ')).join('\t')).join('\n') + '\n', 'text/tab-separated-values');
 };
 document.getElementById('dlJson').onclick = () => {
@@ -494,13 +538,13 @@ document.getElementById('fileIn').onchange = e => {
       sel = ids.filter(x => BYID.has(x)).map(x => BYID.get(x)); selSet.clear(); sel.forEach(i => selSet.add(i));
       if (j.patient) PF.forEach(k => document.getElementById(k).value = j.patient[k] || '');
       recount(); save(); renderSel(); renderSystems(); render();
-      toast(sel.length + ' termes chargés' + (missing.length ? ' — ' + missing.length + ' ID(s) introuvable(s) : ' + missing.join(', ') : ''));
-    } catch(err){ toast('Fichier JSON invalide'); }
+      toast(sel.length + ' terms loaded' + (missing.length ? ', ' + missing.length + ' unknown ID(s): ' + missing.join(', ') : ''));
+    } catch(err){ toast('Invalid JSON file'); }
   };
   r.readAsText(f); e.target.value = '';
 };
 document.getElementById('clearBtn').onclick = () => {
-  if (!confirm('Effacer le patient et tous les termes cochés ?')) return;
+  if (!confirm('Clear the patient details and all ticked terms?')) return;
   sel = []; selSet.clear(); PF.forEach(k => document.getElementById(k).value = '');
   document.getElementById('pDate').value = new Date().toISOString().slice(0,10);
   recount(); save(); renderSel(); renderSystems(); render();
@@ -536,12 +580,15 @@ document.getElementById('q').addEventListener('input', e => {
   clearTimeout(qt);
   qt = setTimeout(() => { searchQ = e.target.value; renderSystems(); render(); document.getElementById('main').scrollTop = 0; }, 140);
 });
-function setLang(l){
-  lang = l; LS.set('lang', l);
-  document.querySelectorAll('#langSeg button').forEach(b => b.classList.toggle('on', b.dataset.l === l));
-  renderSystems(); renderSel(); render();
-}
-document.getElementById('langSeg').onclick = e => { const b = e.target.closest('button'); if (b) setLang(b.dataset.l); };
+/* "More" menu */
+const morePop = document.getElementById('morePop'), moreBtn = document.getElementById('moreBtn');
+function setMenu(open){ morePop.hidden = !open; moreBtn.setAttribute('aria-expanded', open); }
+moreBtn.onclick = e => { e.stopPropagation(); setMenu(morePop.hidden); };
+document.addEventListener('click', e => { if (!morePop.hidden && !e.target.closest('#morePop hr')) setMenu(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape'){ setMenu(false); panel.classList.remove('open'); } });
+const ptBox = document.getElementById('ptBox');
+ptBox.open = !!LS.get('ptOpen');
+ptBox.addEventListener('toggle', () => LS.set('ptOpen', ptBox.open));
 const panel = document.getElementById('selPanel');
 document.getElementById('selToggle').onclick = () => panel.classList.add('open');
 document.getElementById('selClose').onclick = () => panel.classList.remove('open');
@@ -554,13 +601,12 @@ window.addEventListener('afterprint', () => { document.getElementById('printArea
 
 /* ---------- init ---------- */
 const th = LS.get('theme'); if (th) document.documentElement.dataset.theme = th;
-document.getElementById('ver').textContent = 'HPO ' + D.v + ' · ' + N.toLocaleString('fr-FR') + ' termes';
+document.getElementById('ver').textContent = 'HPO ' + D.v + ' · ' + N.toLocaleString('en-GB') + ' terms';
 (LS.get('sel') || []).forEach(x => { if (BYID.has(x)){ const i = BYID.get(x); sel.push(i); selSet.add(i); } });
 const pp = LS.get('patient') || {};
 PF.forEach(k => document.getElementById(k).value = pp[k] || '');
 if (!pp.pDate) document.getElementById('pDate').value = new Date().toISOString().slice(0,10);
-recount(); renderSel();
-setLang(lang);
+recount(); renderPt(); renderSel(); renderSystems(); render();
 })();
 </script>
 </body>
